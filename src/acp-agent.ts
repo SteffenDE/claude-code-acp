@@ -230,6 +230,10 @@ export type ToolUseCache = {
   };
 };
 
+function isStaticBinary(): boolean {
+  return process.env.CLAUDE_AGENT_ACP_IS_SINGLE_FILE_BUN !== undefined;
+}
+
 // Bypass Permissions doesn't work if we are a root/sudo user
 const IS_ROOT = (process.geteuid?.() ?? process.getuid?.()) === 0;
 const ALLOW_BYPASS = !IS_ROOT || !!process.env.IS_SANDBOX;
@@ -264,12 +268,22 @@ export class ClaudeAcpAgent implements Agent {
 
     // If client supports terminal-auth capability, use that instead.
     if (request.clientCapabilities?._meta?.["terminal-auth"] === true) {
-      const cliPath = fileURLToPath(import.meta.resolve("@anthropic-ai/claude-agent-sdk/cli.js"));
+      let command: string;
+      let args: string[];
+
+      if (isStaticBinary()) {
+        command = process.execPath;
+        args = [];
+      } else {
+        const cliPath = fileURLToPath(import.meta.resolve("@anthropic-ai/claude-agent-sdk/cli.js"));
+        command = "node";
+        args = [cliPath];
+      }
 
       authMethod._meta = {
         "terminal-auth": {
-          command: "node",
-          args: [cliPath],
+          command,
+          args,
           label: "Claude Login",
         },
       };
@@ -1231,9 +1245,11 @@ export class ClaudeAcpAgent implements Agent {
       // note: although not documented by the types, passing an absolute path
       // here works to find zed's managed node version.
       executable: process.execPath as any,
-      ...(process.env.CLAUDE_CODE_EXECUTABLE && {
-        pathToClaudeCodeExecutable: process.env.CLAUDE_CODE_EXECUTABLE,
-      }),
+      ...(process.env.CLAUDE_CODE_EXECUTABLE
+        ? { pathToClaudeCodeExecutable: process.env.CLAUDE_CODE_EXECUTABLE }
+        : isStaticBinary()
+          ? { pathToClaudeCodeExecutable: process.execPath }
+          : {}),
       disallowedTools,
       tools: { type: "preset", preset: "claude_code" },
       hooks: {
