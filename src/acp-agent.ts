@@ -273,7 +273,7 @@ export class ClaudeAcpAgent implements Agent {
 
       if (isStaticBinary()) {
         command = process.execPath;
-        args = [];
+        args = ["--cli"];
       } else {
         const cliPath = fileURLToPath(import.meta.resolve("@anthropic-ai/claude-agent-sdk/cli.js"));
         command = "node";
@@ -1245,6 +1245,7 @@ export class ClaudeAcpAgent implements Agent {
       // note: although not documented by the types, passing an absolute path
       // here works to find zed's managed node version.
       executable: process.execPath as any,
+      executableArgs: isStaticBinary() ? ["--cli"] : undefined,
       ...(process.env.CLAUDE_CODE_EXECUTABLE
         ? { pathToClaudeCodeExecutable: process.env.CLAUDE_CODE_EXECUTABLE }
         : isStaticBinary()
