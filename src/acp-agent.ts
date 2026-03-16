@@ -850,7 +850,7 @@ export class ClaudeAcpAgent implements Agent {
     await session.query.interrupt();
   }
 
-  async unstable_sessionClose(params: CloseSessionRequest): Promise<CloseSessionResponse> {
+  async unstable_closeSession(params: CloseSessionRequest): Promise<CloseSessionResponse> {
     const session = this.sessions[params.sessionId];
     if (!session) {
       throw new Error("Session not found");
