@@ -1658,6 +1658,7 @@ describe("getOrCreateSession param change detection", () => {
       pendingMessages: new Map(),
       nextPendingOrder: 0,
       abortController: new AbortController(),
+      emitRawSDKMessages: false,
     };
     return agent.sessions[sessionId]!;
   }
@@ -2237,6 +2238,7 @@ describe("emitRawSDKMessages", () => {
       input,
       cancelled: false,
       cwd: "/test",
+      sessionFingerprint: JSON.stringify({ cwd: "/test", mcpServers: [] }),
       modes: { currentModeId: "default", availableModes: [] },
       models: { currentModelId: "default", availableModels: [] },
       settingsManager: { dispose: vi.fn() } as any,
